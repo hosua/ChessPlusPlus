@@ -63,4 +63,6 @@ struct Coord {
 
 extern std::map<P_Type, std::string> p_type_to_str;
 
+extern std::map<P_Color, std::string> p_color_to_str;
+
 #endif // GLOBAL_H

@@ -12,7 +12,11 @@ public:
 	Board();
 	~Board(){}
 
-	void resetGame();
+	void reset();
+
+	void movePiece(Coord src, Coord dest, P_Color src_color= BLACK);
+
+	void validateMove(); // TODO
 
 	Piece* grid[GRID_HEIGHT][GRID_WIDTH];
 };
@@ -28,10 +32,13 @@ public:
 
 	P_Type getType(){ return type; }
 	P_Color getColor(){ return color; }
+
 private:
 	P_Type type;
 	P_Color color;	
 };
+
+extern Coord empty_coord;
 
 // ChessCoord coordToChessCoord(Coord c);
 // Coord chessCoordToCoord(ChessCoord cc);

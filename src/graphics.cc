@@ -30,7 +30,9 @@ void GFX::renderPiece(int x, int y, Piece piece){
 	};
 	surface = IMG_Load(filename.c_str());
 	texture = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface);
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
+	SDL_DestroyTexture(texture);
 }
 
 void GFX::init(){

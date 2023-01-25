@@ -21,6 +21,7 @@ void gameLoop(GFX* gfx, Board* board, Mouse* mouse){
 				prev = pos;
 			}
 		}
+
 		gfx->clearScreen();
 		gfx->renderBoard();
 		gfx->renderPieces(*board);

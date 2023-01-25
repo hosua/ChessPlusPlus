@@ -25,40 +25,40 @@ void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event){
 void Mouse::movePiece(Board* board){
 	Coord c_src = selected_coord;
 	Coord c_dest = getPos();
-	if (piece_selected and c_src != c_dest){
-		cout << "Moved piece from " << c_src << "->" << c_dest << "\n";
-		Piece* temp = board->grid[c_src.y][c_src.x];
-		board->grid[c_src.y][c_src.x] = board->grid[c_dest.y][c_dest.x];
-		board->grid[c_dest.y][c_dest.x] = temp;
-		piece_selected = false;
+	if (in_piece_selection and c_src != c_dest){
+		cout << "Moved piece from " << c_src.getChessCoordStr() << " -> " << c_dest.getChessCoordStr() << "\n";
+		board->movePiece(c_src, c_dest);
+		// Piece* temp = board->grid[c_src.y][c_src.x];
+		// board->grid[c_src.y][c_src.x] = board->grid[c_dest.y][c_dest.x];
+		// board->grid[c_dest.y][c_dest.x] = temp;
+		in_piece_selection = false;
 		selected_coord = Coord(-1,-1);
 	}
 }
 
 void Mouse::describePiece(Board board){
 	Coord c = getPos();
-	Piece* pc = nullptr;
-	if ( (pc = board.grid[c.y][c.x]) ){
+	Piece* pc = board.grid[c.y][c.x];
+	if (pc)
 		cout << pc << " " << c.getChessCoordStr() << "\n";
-	} else {
+	else
 		cout << c.getChessCoordStr() << "\n";
-	}
 }
 
 void Mouse::selectPiece(Board board){
 	Coord c = getPos();	
 	Piece* pc = board.grid[c.y][c.x];
-	if (not piece_selected){ // select
+	if (not in_piece_selection){ // select
 		if (pc){
 			cout << "selected piece: " << *pc << "\n";
 			selected_coord = Coord(c.x, c.y);
-			piece_selected = true;
+			in_piece_selection = true;
 		}
 	} else { // deselect piece if same coordinate is clicked
 		if ( getPos() == selected_coord){
 			cout << "unselected piece: " << pc << "\n";
 			selected_coord = Coord(-1,-1);
-			piece_selected = false;
+			in_piece_selection = false;
 		}
 	}
 }

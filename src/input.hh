@@ -6,7 +6,9 @@
 
 class Mouse {
 public:
-	Mouse() : pos({0,0}), true_pos({0,0}), piece_selected(false), selected_coord({-1,-1}) {}
+	Mouse() : pos({0,0}), true_pos({0,0}), 
+		in_piece_selection(false), selected_coord({-1,-1}) {}
+
 	~Mouse(){}
 
 	void updatePos();
@@ -20,6 +22,7 @@ public:
 		Coord p = true_pos;
 		printf("true pos: (%i,%i)\n", p.x, p.y);
 	}
+
 	void selectPiece(Board board);
 
 	void describePiece(Board board);
@@ -29,15 +32,15 @@ public:
 	Coord getPos(){ return pos; }
 	Coord getTruePos(){ return true_pos; }
 	
-	bool isPieceSelected(){
-		return piece_selected;
+	bool checkIfInPieceSelection(){
+		return in_piece_selection;
 	}
 
 private:
 	Coord pos;
 	Coord true_pos;
 
-	bool piece_selected;
+	bool in_piece_selection;
 	Coord selected_coord; // the coordinate of the piece selected
 };
 
