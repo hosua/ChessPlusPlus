@@ -9,7 +9,7 @@ void GFX::renderPiece(int x, int y, Piece piece){
 	s_color = (color == WHITE) ? "white" : "black";
 	s_type = p_type_to_str[type];
 
-	std::string filename = "img/" + s_color + "_" + s_type + ".png";
+	std::string filename = "sprites/" + s_color + "-" + s_type + ".png";
 
 	SDL_Rect dest = {
 		.x = x, .y = y,		

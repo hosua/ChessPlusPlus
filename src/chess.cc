@@ -57,14 +57,19 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color){
 	Piece** b = &grid[dest.y][dest.x];
 
 	
+	if (not validateMove()){
+		// TODO: This needs to validate the move before
+		// moving the piece.
+		cout << src << " -> " << dest << " is an invalid move.\n";
+		return;
+	}
+	
 	if (not pc){ // swap with empty tile
 		std::swap(*a, *b);
 	} else if (src_color == dest_color){
 		cout << "Invalid move, a piece of your color exists on " << dest << ".\n";
 		return;
 	} else { // is enemy piece
-		validateMove(); // TODO: Dummy function. This needs to validate the move before
-						// moving the piece.
 		// cout << p_color_to_str[src_color] << "\n";	
 		Piece* temp = *b;
 		std::swap(*a, *b);
@@ -73,9 +78,11 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color){
 	}
 }
 
-void Board::validateMove(){
+// TODO: Dummy function
+bool Board::validateMove(){
 	cout << "Warning: validateMove() is not yet implemented.\n";
-} // TODO: Dummy function
+	return true;
+}
 
 void Board::reset(){
 	cout << "Board was reset.\n";

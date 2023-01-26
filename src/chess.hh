@@ -16,7 +16,7 @@ public:
 
 	void movePiece(Coord src, Coord dest, P_Color src_color);
 
-	void validateMove(); // TODO
+	bool validateMove(); // TODO
 
 	Piece* grid[GRID_HEIGHT][GRID_WIDTH];
 };
