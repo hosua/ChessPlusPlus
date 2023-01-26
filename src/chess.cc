@@ -64,7 +64,7 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color){
 		return;
 	}
 	
-	if (not pc){ // swap with empty tile
+	if (pc == nullptr){ // swap with empty tile
 		std::swap(*a, *b);
 	} else if (src_color == dest_color){
 		cout << "Invalid move, a piece of your color exists on " << dest << ".\n";
@@ -73,8 +73,9 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color){
 		// cout << p_color_to_str[src_color] << "\n";	
 		Piece* temp = *b;
 		std::swap(*a, *b);
-		delete temp;
-		temp = nullptr;
+		delete *a;
+		grid[src.y][src.x] = nullptr;
+		// temp = nullptr;
 	}
 }
 
