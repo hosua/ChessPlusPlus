@@ -162,12 +162,12 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 			//  Pawns can only attack an enemy if any only if they are diagonal from the pawn.
 			if (getColor() == BLACK){
 				// First move can move two tiles
-				dest = Coord(c.x, c.y+2);
-				if (c.y == 1 and not board->grid[dest.y][dest.x])	 
-					valid_moves.push_back(Coord(c.x,c.y+2));
 				dest = Coord(c.x, c.y+1);
 				if (board->checkIfCoordInbounds(dest) and not board->grid[dest.y][dest.x])
 					valid_moves.push_back(dest);
+				dest = Coord(c.x, c.y+2);
+				if (c.y == 1 and not board->grid[dest.y][dest.x] and not board->grid[dest.y-1][dest.x])	 
+					valid_moves.push_back(Coord(c.x,c.y+2));
 
 				// Diagonals (move only if enemy piece is present
 				dest = Coord(c.x-1, c.y+1); // top left
@@ -178,12 +178,13 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 					valid_moves.push_back(dest);
 
 			} else if (getColor() == WHITE){
-				dest = Coord(c.x,c.y-2);
-				if (c.y == 6 and not board->grid[dest.y][dest.x])	 
-					valid_moves.push_back(dest);
 				// First move can move two tiles
 				dest = Coord(c.x, c.y-1);
 				if (board->checkIfCoordInbounds(dest) and not board->grid[dest.y][dest.x])
+					valid_moves.push_back(dest);
+
+				dest = Coord(c.x,c.y-2);
+				if (c.y == 6 and not board->grid[dest.y][dest.x] and not board->grid[dest.y+1][dest.x])	 
 					valid_moves.push_back(dest);
 			}
 		
