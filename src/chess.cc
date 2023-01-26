@@ -1,5 +1,8 @@
 #include "chess.hh"
 
+// TODO: Need to implement move validator to check moves as soon as piece is selected.
+// Too tired rn.
+
 Coord empty_coord = Coord(-1,-1);
 
 std::vector<P_Type> main_row = {ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK};
@@ -48,38 +51,75 @@ Board::Board(){
 	reset(); 
 }
 
-void Board::movePiece(Coord src, Coord dest, P_Color src_color){
-	Piece* pc = grid[dest.y][dest.x];
+void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::vector<Coord> valid_moves){
+	Piece* dest_pc = grid[dest.y][dest.x];
+
 	P_Color dest_color = NULL_COLOR;
-	if (pc) dest_color = pc->getColor();
+	if (dest_pc) dest_color = dest_pc->getColor();
 
 	Piece** a = &grid[src.y][src.x];
 	Piece** b = &grid[dest.y][dest.x];
+	
+	// cout << "dest: " << dest.getChessCoordStr() << "\n";
+	// printValidMoves(valid_moves);
+	if (std::find(valid_moves.begin(), valid_moves.end(), dest) == valid_moves.end()){
+		cout << src.getChessCoordStr() << " -> " << dest.getChessCoordStr() << " is not a valid move.\n";
+		return;
+	} 
 
-	
-	if (not validateMove()){
-		// TODO: This needs to validate the move before
-		// moving the piece.
-		cout << src << " -> " << dest << " is an invalid move.\n";
-		return;
-	}
-	
-	if (pc == nullptr){ // swap with empty tile
+	cout << "Moved piece from " << src.getChessCoordStr() << " -> " << dest.getChessCoordStr() << "\n";
+
+	Coord c = Coord(src.x, src.y);
+
+	if (not dest_pc){ // swap with empty tile
 		std::swap(*a, *b);
-	} else if (src_color == dest_color){
-		cout << "Invalid move, a piece of your color exists on " << dest << ".\n";
-		return;
-	} else { // is enemy piece
+	} else { // is enemy piece, swap and delete killed piece
 		std::swap(*a, *b);
 		delete *a;
 		grid[src.y][src.x] = nullptr;
 	}
 }
+bool Board::checkIfCoordInbounds(Coord c){
+	return (c.x >= 0 and c.y >= 0 and c.x < GRID_WIDTH and c.y < GRID_HEIGHT);	
+}
 
-// TODO: Dummy function
-bool Board::validateMove(){
-	cout << "Warning: validateMove() is not yet implemented.\n";
-	return true;
+bool Board::checkIfDifferentColor(Coord src, Coord dest){
+	Piece* src_pc = grid[src.y][src.x];
+	Piece* dest_pc = grid[dest.y][dest.x];
+	if (not src_pc or not dest_pc)
+		return true;
+	return (src_pc->getColor() != dest_pc->getColor());
+}
+
+
+// TODO 
+bool Board::validateMove(Coord src, Coord dest, std::vector<Coord> valid_moves){
+	// cout << "Warning: validateMove() is not yet implemented.\n";
+
+	Piece* src_pc = grid[src.y][src.x];		
+	Piece* dest_pc = grid[dest.y][dest.x];		
+	
+	cout << src << "\n";
+	// If source piece is null or source piece is default empty coord
+	if (not src_pc or src == empty_coord) 
+		return false;
+	// If src and dest color match
+	if (not checkIfDifferentColor(src, dest))
+		return false;
+	
+	// If the destination move is in the valid moves vector, then it is valid.
+	return (std::find(valid_moves.begin(), valid_moves.end(), dest) != valid_moves.end());
+}
+
+void Board::printValidMoves(std::vector<Coord> moves){
+	cout << "Valid moves: [";
+	// For debugging
+	if (moves.size()){
+		for (int i = 0; i < moves.size()-1; i++)
+			cout << moves[i].getChessCoordStr() << ", ";
+		cout << (moves.end()-1)->getChessCoordStr();
+	}
+	cout << "]\n";
 }
 
 void Board::reset(){
@@ -93,12 +133,67 @@ void Board::reset(){
 
 	// Black Pieces;	
 	for (int x = 0; x < GRID_WIDTH; x++){
-		grid[0][x] = new Piece(main_row[x], BLACK);
-		grid[1][x] = new Piece(PAWN, BLACK);
+		grid[0][x] = new Piece(main_row[x], BLACK, Coord(0,x));
+		grid[1][x] = new Piece(PAWN, BLACK, Coord(1,0));
 	}
 	// White Pieces;	
 	for (int x = 0; x < GRID_WIDTH; x++){
-		grid[6][x] = new Piece(PAWN, WHITE);
-		grid[7][x] = new Piece(main_row[x], WHITE);
+		grid[6][x] = new Piece(PAWN, WHITE, Coord(6,x));
+		grid[7][x] = new Piece(main_row[x], WHITE, Coord(7,x));
 	}
+}
+
+std::vector<Coord> Piece::getValidMoves(Board* board){
+	std::vector<Coord> valid_moves;
+	Coord c = getPos();
+
+	Coord dest;
+
+	switch(getType()){
+		case BISHOP:
+			break;
+		case KING: 
+			break;
+		case KNIGHT:
+			break;
+		case PAWN:
+			//  An example of how move validation will be implemented
+			//  TODO: Add diagonals if there exists a diagonal enemy to the selected pawn
+			//  Pawns can only attack an enemy if any only if they are diagonal from the pawn.
+			if (getColor() == BLACK){
+				// First move can move two tiles
+				dest = Coord(c.x, c.y+2);
+				if (c.y == 1 and not board->grid[dest.y][dest.x])	 
+					valid_moves.push_back(Coord(c.x,c.y+2));
+				dest = Coord(c.x, c.y+1);
+				if (board->checkIfCoordInbounds(dest) and not board->grid[dest.y][dest.x])
+					valid_moves.push_back(dest);
+
+				// Diagonals (move only if enemy piece is present
+				dest = Coord(c.x-1, c.y+1); // top left
+				if (board->checkIfCoordInbounds(dest) and board->grid[dest.y][dest.x])
+					valid_moves.push_back(dest);
+				dest = Coord(c.x+1, c.y+1); // top right
+				if (board->checkIfCoordInbounds(dest) and board->grid[dest.y][dest.x])
+					valid_moves.push_back(dest);
+
+			} else if (getColor() == WHITE){
+				dest = Coord(c.x,c.y-2);
+				if (c.y == 6 and not board->grid[dest.y][dest.x])	 
+					valid_moves.push_back(dest);
+				// First move can move two tiles
+				dest = Coord(c.x, c.y-1);
+				if (board->checkIfCoordInbounds(dest) and not board->grid[dest.y][dest.x])
+					valid_moves.push_back(dest);
+			}
+		
+			break;
+		case ROOK: 
+			break;
+		case QUEEN:
+			break;
+		default:
+			break;
+	}
+	return valid_moves;
 }

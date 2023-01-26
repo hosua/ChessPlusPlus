@@ -5,7 +5,7 @@
 
 void gameLoop(GFX* gfx, Board* board, Mouse* mouse);
 
-void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event);
+void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event, std::vector<Coord>& valid_moves);
 
 int main(){
 	if (SDL_Init(SDL_INIT_EVERYTHING)){ // Use this when running the game normally
@@ -21,7 +21,7 @@ int main(){
 	gameLoop(gfx, board, mouse);
 }
 
-void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event){
+void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event, std::vector<Coord>& valid_moves){
 	switch(event.type){
 		case SDL_KEYDOWN:
 			switch(event.key.keysym.sym){
@@ -35,9 +35,12 @@ void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event){
 			mouse->setCursorGhost(gfx, event);
 			break;
 		case SDL_MOUSEBUTTONDOWN:
-			mouse->selectPiece(*board); 
-			mouse->movePiece(board);
+		{
+			mouse->selectPiece(*board, valid_moves); 
+			// board->printValidMoves(valid_moves);
+			mouse->movePiece(board, valid_moves);
 			break;
+		}
 		default:
 			break;
 	}
@@ -48,13 +51,14 @@ void gameLoop(GFX* gfx, Board* board, Mouse* mouse){
 	gfx->clearScreen();
 	bool is_running = true;	
 
+	std::vector<Coord> valid_moves;
+
 	Coord prev; // keep track of previous coord to prevent frequent printing
 	while(is_running){
 		SDL_Event event;
-		
 
 		while (SDL_PollEvent(&event)){
-			handleInputs(gfx, mouse, board, event);
+			handleInputs(gfx, mouse, board, event, valid_moves);
 			// mouse->printPos();
 			Coord pos = mouse->getPos();
 			if (pos != prev){

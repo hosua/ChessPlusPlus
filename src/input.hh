@@ -28,9 +28,9 @@ public:
 	void setHighlight(GFX* gfx);
 	void setCursorGhost(GFX* gfx, SDL_Event event);
 
-	void selectPiece(Board board);
+	void selectPiece(Board board, std::vector<Coord>& valid_moves);
 	void describePiece(Board board);
-	void movePiece(Board* board); // move selected piece to cell at mouse pos
+	void movePiece(Board* board, std::vector<Coord> valid_moves);
 
 	Coord getPos(){ return pos; }
 	Coord getTruePos(){ return true_pos; }

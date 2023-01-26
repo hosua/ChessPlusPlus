@@ -7,6 +7,7 @@
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_ttf.h>
 
+#include <algorithm>
 #include <vector>
 #include <iostream>
 #include <map>
@@ -65,4 +66,5 @@ struct Coord {
 	}
 };
 
+extern Coord empty_coord;
 #endif // GLOBAL_H
