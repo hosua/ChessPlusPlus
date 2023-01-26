@@ -67,7 +67,7 @@ void GFX::init(){
 			SCREEN_X, SCREEN_Y, 
 			0);
 
-	if (!window){
+	if (not window){
 		fprintf(stderr, "Fatal Error: Window failed to initialize\n");
 		fprintf(stderr, "SDL2 Error: %s\n", SDL_GetError());
 		cleanQuit(false);
@@ -78,7 +78,7 @@ void GFX::init(){
 
 	surface = SDL_GetWindowSurface(window);
 
-	if (!surface){
+	if (not surface){
 		fprintf(stderr, "Failed to get surface from window.\n");
 		fprintf(stderr, "SDL2 Error: %s", SDL_GetError());
 		cleanQuit(false);
@@ -86,7 +86,9 @@ void GFX::init(){
 
 	initFont();
 
-	// But can it blend? (Allows for transparent rendering)
+	initRects();
+
+	// Allows for transparent rendering
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	
 	setTheme();
@@ -110,21 +112,23 @@ void GFX::renderPresent(){
 }
 
 void GFX::renderBoard(){
-	std::function <void()> renderBoardLetters;
-	std::function <void()> renderBoardNumbers;
-	renderBoardLetters = [&](){
-		for (int i = 1; i <= GRID_HEIGHT; i++){
-			renderText(
-					((GRID_CELL_SIZE) * (i-1)) + (GRID_CELL_SIZE/2.5), 
-					(GRID_CELL_SIZE * 8) - 25, 
-					GRID_CELL_SIZE/5, 
-					GRID_CELL_SIZE/3, 
-					std::string(1, (i-1) + 'A'));
-		}
-	};
-	renderBoardNumbers = [&](){
+	// Render A-H on the x-axis
+	std::function <void()> renderBoardLetters = [&]() -> void {
 		for (int i = 1; i <= GRID_HEIGHT; i++)
-			renderText(0, ((GRID_CELL_SIZE) * (i-1)) + GRID_CELL_SIZE/4, GRID_CELL_SIZE/5, GRID_CELL_SIZE/3, std::to_string(i));
+			renderText(((GRID_CELL_SIZE) * (i-1)) + (GRID_CELL_SIZE/2.5), 
+						(GRID_CELL_SIZE * 8) - 25, 
+						GRID_CELL_SIZE/5, 
+						GRID_CELL_SIZE/3, 
+						std::string(1, (i-1) + 'A'));
+	};
+	// Render 1-8 on the y-axis
+	std::function <void()> renderBoardNumbers = [&]() -> void {
+		for (int i = 1; i <= GRID_HEIGHT; i++)
+			renderText(0, 
+						((GRID_CELL_SIZE) * (i-1)) + GRID_CELL_SIZE/4, 
+						GRID_CELL_SIZE/5, 
+						GRID_CELL_SIZE/3, 
+						std::to_string(i));
 	};
 
 	SDL_SetRenderDrawColor(renderer, 
@@ -133,6 +137,7 @@ void GFX::renderBoard(){
 
 	SDL_RenderClear(renderer);
 
+	// Render the tiles of the chess board
 	const int N = (GRID_HEIGHT*GRID_WIDTH)/2;
 	SDL_Rect black_rects[N], white_rects[N];
 	int i = 0, black_cnt = 0, white_cnt = 0;	
@@ -147,6 +152,7 @@ void GFX::renderBoard(){
 		}
 		++i;
 	}
+
 	SDL_SetRenderDrawColor(renderer,
 			colors.black_sq.r, colors.black_sq.g, colors.black_sq.b,
 			colors.black_sq.a);
@@ -156,7 +162,34 @@ void GFX::renderBoard(){
 			colors.white_sq.r, colors.white_sq.g, colors.white_sq.b,
 			colors.white_sq.a);
 	SDL_RenderFillRects(renderer, white_rects, white_cnt);
-
+	
+	// Render A-H on the x-axis
 	renderBoardLetters();
+	// Render 1-8 on the y-axis
 	renderBoardNumbers();
+}
+
+void GFX::initRects(){
+	cursor_ghost.x = cursor_ghost.y = -1;
+	highlight.x = highlight.y = -1;
+	cursor_ghost.w = cursor_ghost.h = GRID_CELL_SIZE;
+	highlight.h = highlight.w = GRID_CELL_SIZE;
+}
+
+void GFX::renderCursorGhost(){
+	// At start, do not render the cursor ghost until the player mouses over the game
+	if (cursor_ghost.x == -1 and cursor_ghost.y == -1)
+		return;
+
+	SDL_Color c = colors.cursor_ghost;
+	SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
+	SDL_RenderFillRect(renderer, &cursor_ghost);
+}
+
+void GFX::renderHighlight(){
+	if (checkIfInPieceSelection()){
+		SDL_Color c = colors.highlight_piece;
+		SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
+		SDL_RenderFillRect(renderer, &highlight);
+	}
 }

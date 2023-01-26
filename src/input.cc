@@ -1,27 +1,6 @@
 #include "input.hh"
 #include "chess.hh"
 
-void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event){
-	switch(event.type){
-		case SDL_KEYDOWN:
-			switch(event.key.keysym.sym){
-				case SDLK_ESCAPE:
-					gfx->cleanQuit();
-					break;
-			}
-			break;
-		case SDL_MOUSEMOTION:
-			mouse->updatePos();
-			break;
-		case SDL_MOUSEBUTTONDOWN:
-			mouse->selectPiece(*board); 
-			mouse->movePiece(board);
-			break;
-		default:
-			break;
-	}
-}
-
 void Mouse::movePiece(Board* board){
 	if (selected_coord == empty_coord)
 		return;
@@ -70,6 +49,19 @@ void Mouse::selectPiece(Board board){
 			in_piece_selection = false;
 		}
 	}
+}
+
+void Mouse::setHighlight(GFX* gfx){
+	Coord c = selected_coord;
+	if (in_piece_selection and c != empty_coord){
+		gfx->highlight.x = (c.x * GRID_CELL_SIZE);
+		gfx->highlight.y = (c.y * GRID_CELL_SIZE);
+	}
+}
+
+void Mouse::setCursorGhost(GFX* gfx, SDL_Event event){
+	gfx->cursor_ghost.x = (event.motion.x / GRID_CELL_SIZE) * GRID_CELL_SIZE;	
+	gfx->cursor_ghost.y = (event.motion.y / GRID_CELL_SIZE) * GRID_CELL_SIZE;
 }
 
 void Mouse::updatePos(){

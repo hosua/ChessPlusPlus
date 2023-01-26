@@ -5,6 +5,8 @@
 
 void gameLoop(GFX* gfx, Board* board, Mouse* mouse);
 
+void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event);
+
 int main(){
 	if (SDL_Init(SDL_INIT_EVERYTHING)){ // Use this when running the game normally
 	//if (SDL_Init(SDL_INIT_NOPARACHUTE)){ // Use this when debugging with gdb
@@ -19,6 +21,28 @@ int main(){
 	gameLoop(gfx, board, mouse);
 }
 
+void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event){
+	switch(event.type){
+		case SDL_KEYDOWN:
+			switch(event.key.keysym.sym){
+				case SDLK_ESCAPE:
+					gfx->cleanQuit();
+					break;
+			}
+			break;
+		case SDL_MOUSEMOTION:
+			mouse->updatePos();
+			mouse->setCursorGhost(gfx, event);
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			mouse->selectPiece(*board); 
+			mouse->movePiece(board);
+			break;
+		default:
+			break;
+	}
+}
+
 void gameLoop(GFX* gfx, Board* board, Mouse* mouse){
 
 	gfx->clearScreen();
@@ -28,6 +52,7 @@ void gameLoop(GFX* gfx, Board* board, Mouse* mouse){
 	while(is_running){
 		SDL_Event event;
 		
+
 		while (SDL_PollEvent(&event)){
 			handleInputs(gfx, mouse, board, event);
 			// mouse->printPos();
@@ -37,10 +62,15 @@ void gameLoop(GFX* gfx, Board* board, Mouse* mouse){
 				prev = pos;
 			}
 		}
+		mouse->setHighlight(gfx);
+
+		gfx->setPieceSelection(mouse->checkIfInPieceSelection());
 
 		gfx->clearScreen();
 		gfx->renderBoard();
 		gfx->renderPieces(*board);
+		gfx->renderCursorGhost();
+		gfx->renderHighlight();
 		gfx->renderPresent();
 	}
 }

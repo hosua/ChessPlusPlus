@@ -70,12 +70,9 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color){
 		cout << "Invalid move, a piece of your color exists on " << dest << ".\n";
 		return;
 	} else { // is enemy piece
-		// cout << p_color_to_str[src_color] << "\n";	
-		Piece* temp = *b;
 		std::swap(*a, *b);
 		delete *a;
 		grid[src.y][src.x] = nullptr;
-		// temp = nullptr;
 	}
 }
 
