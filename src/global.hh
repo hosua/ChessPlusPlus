@@ -10,15 +10,20 @@
 #include <vector>
 #include <iostream>
 #include <map>
+#include <functional> // for std::function
 
 #define GRID_CELL_SIZE 80
-#define PIECE_SIZE 70
+#define PIECE_SIZE 60
 #define GRID_WIDTH 8
 #define GRID_HEIGHT 8
 #define SCREEN_X (GRID_WIDTH * GRID_CELL_SIZE) + 1
 #define SCREEN_Y (GRID_HEIGHT * GRID_CELL_SIZE) + 1
 
+#define FONT_PATH "font/OpenSans-Regular.ttf"
+#define FONT_SIZE 30
+
 using std::cout;
+using std::cerr;
 
 class GFX;
 class Board;
@@ -36,6 +41,8 @@ typedef enum {
 } P_Color;
 
 extern std::map<int,int> coord_conversion_map;
+extern std::map<P_Type, std::string> p_type_to_str;
+extern std::map<P_Color, std::string> p_color_to_str;
 
 struct Coord {
 	int x, y;
@@ -57,12 +64,5 @@ struct Coord {
 		return letter + std::to_string(number);
 	}
 };
-
-// extern ChessCoord coordToChessChord(Coord coord);
-// extern Coord chessCoordToCoord(ChessCoord chess_coord);
-
-extern std::map<P_Type, std::string> p_type_to_str;
-
-extern std::map<P_Color, std::string> p_color_to_str;
 
 #endif // GLOBAL_H

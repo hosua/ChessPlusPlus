@@ -50,12 +50,13 @@ Board::Board(){
 
 void Board::movePiece(Coord src, Coord dest, P_Color src_color){
 	Piece* pc = grid[dest.y][dest.x];
-	P_Color dest_color = (src_color == BLACK) ? WHITE : BLACK;
+	P_Color dest_color = NULL_COLOR;
+	if (pc) dest_color = pc->getColor();
 
 	Piece** a = &grid[src.y][src.x];
 	Piece** b = &grid[dest.y][dest.x];
 
-
+	
 	if (not pc){ // swap with empty tile
 		std::swap(*a, *b);
 	} else if (src_color == dest_color){
@@ -68,6 +69,7 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color){
 		Piece* temp = *b;
 		std::swap(*a, *b);
 		delete temp;
+		temp = nullptr;
 	}
 }
 
@@ -76,9 +78,13 @@ void Board::validateMove(){
 } // TODO: Dummy function
 
 void Board::reset(){
-	for (int y = 0; y < GRID_HEIGHT; y++)
-		for (int x = 0; x < GRID_WIDTH; x++)
+	cout << "Board was reset.\n";
+	for (int y = 0; y < GRID_HEIGHT; y++){
+		for (int x = 0; x < GRID_WIDTH; x++){
 			delete grid[y][x];
+			grid[y][x] = nullptr;
+		}
+	}
 
 	// Black Pieces;	
 	for (int x = 0; x < GRID_WIDTH; x++){
@@ -91,16 +97,3 @@ void Board::reset(){
 		grid[7][x] = new Piece(main_row[x], WHITE);
 	}
 }
-
-// ChessCoord coordToChessCoord(Coord c){
-// 	char letter = c.x + 'A';
-// 	int number = coord_conversion_map[c.y]+1;
-// 	return ChessCoord({letter,number});
-// }
-// 
-// Coord chessCoordToCoord(ChessCoord cc){
-// 	int x, y;
-// 	x = cc.x - 'A';
-// 	y = coord_conversion_map[cc.y-1];
-// 	return Coord({x,y});
-// }

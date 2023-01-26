@@ -34,7 +34,7 @@ DEPS = $(OBJS:.o=.d)
 # Name the compiler
 CC = g++
 
-CCFLAGS = -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image -g -Wall
+CCFLAGS = -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image -g -Wall 
 
 $(OBJDIR)/%.o: %.cc
 	@echo "COMPILING SOURCE $< INTO OBJECT $@"

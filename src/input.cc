@@ -14,7 +14,7 @@ void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event){
 			mouse->updatePos();
 			break;
 		case SDL_MOUSEBUTTONDOWN:
-			mouse->selectPiece(*board);
+			mouse->selectPiece(*board); 
 			mouse->movePiece(board);
 			break;
 		default:
@@ -23,14 +23,23 @@ void handleInputs(GFX* gfx, Mouse* mouse, Board* board, SDL_Event event){
 }
 
 void Mouse::movePiece(Board* board){
+	if (selected_coord == empty_coord)
+		return;
+
 	Coord c_src = selected_coord;
 	Coord c_dest = getPos();
+	Piece* pc = board->grid[c_src.y][c_src.x];
+	
+	if (not pc)
+		return;
+
+	P_Color src_color = NULL_COLOR;
+	src_color = pc->getColor(); 
+
 	if (in_piece_selection and c_src != c_dest){
 		cout << "Moved piece from " << c_src.getChessCoordStr() << " -> " << c_dest.getChessCoordStr() << "\n";
-		board->movePiece(c_src, c_dest);
-		// Piece* temp = board->grid[c_src.y][c_src.x];
-		// board->grid[c_src.y][c_src.x] = board->grid[c_dest.y][c_dest.x];
-		// board->grid[c_dest.y][c_dest.x] = temp;
+		board->movePiece(c_src, c_dest, src_color);
+
 		in_piece_selection = false;
 		selected_coord = Coord(-1,-1);
 	}

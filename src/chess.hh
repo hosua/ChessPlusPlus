@@ -14,7 +14,7 @@ public:
 
 	void reset();
 
-	void movePiece(Coord src, Coord dest, P_Color src_color= BLACK);
+	void movePiece(Coord src, Coord dest, P_Color src_color);
 
 	void validateMove(); // TODO
 

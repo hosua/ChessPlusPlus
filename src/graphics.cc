@@ -1,19 +1,6 @@
 #include "graphics.hh"
 #include "chess.hh"
 
-// Render all pieces
-void GFX::renderPieces(Board board){
-	for (int y = 0; y < GRID_HEIGHT; y++){
-		for (int x = 0; x < GRID_WIDTH; x++){
-			int board_x = (x * GRID_CELL_SIZE) + 5;
-			int board_y = (y * GRID_CELL_SIZE) + 5;
-			Piece* pc = board.grid[y][x];
-			if (pc and pc->getType())
-				renderPiece(board_x, board_y, *pc);
-		}
-	}
-}
-
 // Render a single piece
 void GFX::renderPiece(int x, int y, Piece piece){
 	P_Color color = piece.getColor();
@@ -33,6 +20,44 @@ void GFX::renderPiece(int x, int y, Piece piece){
 	SDL_FreeSurface(surface);
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
 	SDL_DestroyTexture(texture);
+}
+
+// Render all pieces
+void GFX::renderPieces(Board board){
+	for (int y = 0; y < GRID_HEIGHT; y++){
+		for (int x = 0; x < GRID_WIDTH; x++){
+			int board_x = (x * GRID_CELL_SIZE) + 5;
+			int board_y = (y * GRID_CELL_SIZE) + 5;
+			Piece* pc = board.grid[y][x];
+			if (pc and pc->getType())
+				renderPiece(board_x, board_y, *pc);
+		}
+	}
+}
+
+void GFX::renderText(int x, int y, int w, int h, std::string text){
+	SDL_SetRenderDrawColor(renderer, 
+			colors.font.r, colors.font.g, colors.font.b, 
+			colors.font.a);
+
+	SDL_Rect r;
+
+	surface = TTF_RenderText_Solid(font, text.c_str(), colors.font);
+	texture = SDL_CreateTextureFromSurface(renderer, surface);
+	r = SDL_Rect {.x = x, .y = y, .w = w, .h = h};	
+
+	SDL_RenderCopy(renderer, texture, NULL, &r);
+	SDL_FreeSurface(surface);
+	SDL_DestroyTexture(texture);
+}
+
+void GFX::initFont(){
+	TTF_Init();
+	font = TTF_OpenFont(FONT_PATH, FONT_SIZE);
+	if (not font){
+		cerr << "Error: Font file " << FONT_PATH << " is missing!\n";	
+		exit(EXIT_FAILURE);
+	}
 }
 
 void GFX::init(){
@@ -59,9 +84,11 @@ void GFX::init(){
 		cleanQuit(false);
 	}
 
+	initFont();
+
 	// But can it blend? (Allows for transparent rendering)
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-
+	
 	setTheme();
 }
 
@@ -83,6 +110,23 @@ void GFX::renderPresent(){
 }
 
 void GFX::renderBoard(){
+	std::function <void()> renderBoardLetters;
+	std::function <void()> renderBoardNumbers;
+	renderBoardLetters = [&](){
+		for (int i = 1; i <= GRID_HEIGHT; i++){
+			renderText(
+					((GRID_CELL_SIZE) * (i-1)) + (GRID_CELL_SIZE/2.5), 
+					(GRID_CELL_SIZE * 8) - 25, 
+					GRID_CELL_SIZE/5, 
+					GRID_CELL_SIZE/3, 
+					std::string(1, (i-1) + 'A'));
+		}
+	};
+	renderBoardNumbers = [&](){
+		for (int i = 1; i <= GRID_HEIGHT; i++)
+			renderText(0, ((GRID_CELL_SIZE) * (i-1)) + GRID_CELL_SIZE/4, GRID_CELL_SIZE/5, GRID_CELL_SIZE/3, std::to_string(i));
+	};
+
 	SDL_SetRenderDrawColor(renderer, 
 			colors.bg.r, colors.bg.g, colors.bg.b,
 			colors.bg.a);
@@ -112,4 +156,7 @@ void GFX::renderBoard(){
 			colors.white_sq.r, colors.white_sq.g, colors.white_sq.b,
 			colors.white_sq.a);
 	SDL_RenderFillRects(renderer, white_rects, white_cnt);
+
+	renderBoardLetters();
+	renderBoardNumbers();
 }
