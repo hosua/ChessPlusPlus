@@ -4,6 +4,11 @@
 #include "graphics.hh"
 #include <vector>
 
+extern Coord empty_coord; // An invalid coordinate that should be checked for before indexing the board
+
+extern std::vector<Coord> lrdu; // left right down up movement
+extern std::vector<Coord> diag; // diagonal movement
+
 class Piece;
 class Board;
 
@@ -19,6 +24,8 @@ public:
 
 	bool checkIfDifferentColor(Coord src, Coord dest);
 
+	bool checkIfPieceAtCoord(Coord c);
+
 	void movePiece(Coord src, Coord dest, P_Color src_color, std::vector<Coord> valid_moves);
 
 	void printValidMoves(std::vector<Coord> moves);
@@ -30,9 +37,9 @@ public:
 
 class Piece {
 public:
-	Piece() : type(NULL_TYPE), color(NULL_COLOR){}
-	Piece(P_Type type, P_Color color) : type(type), color(color){}
-	Piece(P_Type type, P_Color color, Coord c) : type(type), color(color), pos(c) {}
+	Piece() : pos(empty_coord), type(NULL_TYPE), color(NULL_COLOR){}
+	Piece(P_Type type, P_Color color) : pos(empty_coord), type(type), color(color){}
+	Piece(P_Type type, P_Color color, Coord c) : pos(c), type(type), color(color) {}
 
 	~Piece(){}
 
@@ -52,8 +59,6 @@ private:
 	P_Type type;
 	P_Color color;	
 };
-
-extern Coord empty_coord;
 
 // ChessCoord coordToChessCoord(Coord c);
 // Coord chessCoordToCoord(ChessCoord cc);

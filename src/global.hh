@@ -51,10 +51,20 @@ struct Coord {
 	Coord(int x, int y) : x(x), y(y){}
 	// print Coord
 	friend std::ostream& operator<<(std::ostream& out, const Coord& c);
-
+	
+	// Add two Coords
+	Coord operator+(Coord b){
+		return Coord(this->x + b.x, this->y + b.y);
+	}
+	// Subtract two Coords
+	Coord operator-(Coord b){
+		return Coord(this->x - b.x, this->y - b.y);
+	}
+	// Compare two Coords (equal)
 	bool operator==(Coord b){
 		return (this->x == b.x and this->y == b.y);
 	}
+	// Compare two coords (not equal)	
 	bool operator!=(Coord b){
 		return not (this->x == b.x and this->y == b.y);
 	}

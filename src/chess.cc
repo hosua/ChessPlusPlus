@@ -1,7 +1,10 @@
 #include "chess.hh"
 
-// TODO: Need to implement move validator to check moves as soon as piece is selected.
-// Too tired rn.
+// left right down up
+std::vector<Coord> lrdu = { {-1,0}, {+1,0}, {0,+1}, {0,-1} };
+
+// diagonal movement
+std::vector<Coord> diag = { {-1,-1}, {+1, -1}, {-1, +1}, {+1, +1} };
 
 Coord empty_coord = Coord(-1,-1);
 
@@ -60,16 +63,12 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::vector<Coor
 	Piece** a = &grid[src.y][src.x];
 	Piece** b = &grid[dest.y][dest.x];
 	
-	// cout << "dest: " << dest.getChessCoordStr() << "\n";
-	// printValidMoves(valid_moves);
 	if (std::find(valid_moves.begin(), valid_moves.end(), dest) == valid_moves.end()){
 		cout << src.getChessCoordStr() << " -> " << dest.getChessCoordStr() << " is not a valid move.\n";
 		return;
 	} 
 
 	cout << "Moved piece from " << src.getChessCoordStr() << " -> " << dest.getChessCoordStr() << "\n";
-
-	Coord c = Coord(src.x, src.y);
 
 	if (not dest_pc){ // swap with empty tile
 		std::swap(*a, *b);
@@ -79,6 +78,13 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::vector<Coor
 		grid[src.y][src.x] = nullptr;
 	}
 }
+
+bool Board::checkIfPieceAtCoord(Coord c){
+	if (not checkIfCoordInbounds(c))
+		return false;
+	return grid[c.y][c.x] != nullptr;
+}
+
 bool Board::checkIfCoordInbounds(Coord c){
 	return (c.x >= 0 and c.y >= 0 and c.x < GRID_WIDTH and c.y < GRID_HEIGHT);	
 }
@@ -94,8 +100,6 @@ bool Board::checkIfDifferentColor(Coord src, Coord dest){
 
 // TODO 
 bool Board::validateMove(Coord src, Coord dest, std::vector<Coord> valid_moves){
-	// cout << "Warning: validateMove() is not yet implemented.\n";
-
 	Piece* src_pc = grid[src.y][src.x];		
 	Piece* dest_pc = grid[dest.y][dest.x];		
 	
@@ -145,15 +149,44 @@ void Board::reset(){
 
 std::vector<Coord> Piece::getValidMoves(Board* board){
 	std::vector<Coord> valid_moves;
-	Coord c = getPos();
+	Coord src = getPos();
+	
+	// Helper function for rooks, bishops, and queens
+	std::function<void(Coord,Coord)> moveHelper = [&](Coord dest, Coord move) -> void {
+		if (not board->checkIfCoordInbounds(dest))
+			return;
+		if (board->checkIfPieceAtCoord(dest)){
+			// Different color, add valid move
+			if (board->checkIfDifferentColor(src, dest))
+				valid_moves.push_back(dest);
+			// same color, invalid move
+			return;
+		}
+		valid_moves.push_back(dest);
+		dest = Coord(dest.x + move.x, dest.y + move.y);
+		moveHelper(dest, move);
+	};
 
 	Coord dest;
 	Piece* dest_pc = nullptr;
 
 	switch(getType()){
 		case BISHOP:
+			for (Coord move : diag)
+				moveHelper(src + move, move);
 			break;
 		case KING: 
+			for (Coord move : lrdu){
+				dest = Coord(src.x + move.x, src.y + move.y);
+				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
+					valid_moves.push_back(dest);
+			}
+			for (Coord move : diag){
+				dest = Coord(src.x + move.x, src.y + move.y);
+				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
+					valid_moves.push_back(dest);
+
+			}
 			break;
 		case KNIGHT:
 			break;
@@ -163,57 +196,59 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 			//  Pawns can only attack an enemy if any only if they are diagonal from the pawn.
 			if (getColor() == BLACK){
 				// First move can move two tiles
-				dest = Coord(c.x, c.y+1);
+				dest = Coord(src.x, src.y+1);
 				if (board->checkIfCoordInbounds(dest) and not board->grid[dest.y][dest.x])
 					valid_moves.push_back(dest);
-				dest = Coord(c.x, c.y+2);
+				dest = Coord(src.x, src.y+2);
 				// Do not allow pawns to jump over any pieces
-				if (c.y == 1 and not board->grid[dest.y][dest.x] and not board->grid[dest.y-1][dest.x])	 
-					valid_moves.push_back(Coord(c.x,c.y+2));
+				if (src.y == 1 and not board->grid[dest.y][dest.x] and not board->grid[dest.y-1][dest.x])	 
+					valid_moves.push_back(Coord(src.x,src.y+2));
 
 				// Diagonals (move only if enemy piece is present
-				dest = Coord(c.x-1, c.y+1); // bottom left
+				dest = Coord(src.x-1, src.y+1); // bottom left
 				dest_pc = board->grid[dest.y][dest.x];
-				if (board->checkIfCoordInbounds(dest) 
-						and dest_pc and dest_pc->getColor() == WHITE)
+				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
 					valid_moves.push_back(dest);
 
-				dest = Coord(c.x+1, c.y+1); // bottom right
-				dest_pc = board->grid[c.y+1][c.x+1]; 
+				dest = Coord(src.x+1, src.y+1); // bottom right
+				dest_pc = board->grid[src.y+1][src.x+1]; 
 				// Do not allow pawns to jump over any pieces
-				if (board->checkIfCoordInbounds(dest) 
-						and dest_pc and dest_pc->getColor() == WHITE)
+				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
 					valid_moves.push_back(dest);
 
 			} else if (getColor() == WHITE){
 				// First move can move two tiles
-				dest = Coord(c.x, c.y-1);
+				dest = Coord(src.x, src.y-1);
 				if (board->checkIfCoordInbounds(dest) and not board->grid[dest.y][dest.x])
 					valid_moves.push_back(dest);
 
-				dest = Coord(c.x,c.y-2);
-				if (c.y == 6 and not board->grid[dest.y][dest.x] and not board->grid[dest.y+1][dest.x])	 
+				dest = Coord(src.x,src.y-2);
+				if (src.y == 6 and not board->grid[dest.y][dest.x] and not board->grid[dest.y+1][dest.x])	 
 					valid_moves.push_back(dest);
 
 				// Diagonals (move only if enemy piece is present
-				dest = Coord(c.x-1, c.y-1); // top left
+				dest = Coord(src.x-1, src.y-1); // top left
 				dest_pc = board->grid[dest.y][dest.x];
-				if (board->checkIfCoordInbounds(dest) 
-						and dest_pc and dest_pc->getColor() == BLACK)
+				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
 					valid_moves.push_back(dest);
 
-				dest = Coord(c.x+1, c.y-1); // top right
+				dest = Coord(src.x+1, src.y-1); // top right
 				dest_pc = board->grid[dest.y][dest.x]; 
 				// Do not allow pawns to jump over any pieces
-				if (board->checkIfCoordInbounds(dest) 
-						and dest_pc and dest_pc->getColor() == BLACK)
+				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
 					valid_moves.push_back(dest);
 			}
 		
 			break;
 		case ROOK: 
+			for (Coord move : lrdu)
+				moveHelper(src + move, move);
 			break;
 		case QUEEN:
+			for (Coord move : lrdu)
+				moveHelper(src + move, move);
+			for (Coord move : diag)
+				moveHelper(src + move, move);
 			break;
 		default:
 			break;
