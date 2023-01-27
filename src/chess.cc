@@ -63,9 +63,6 @@ Board::Board(){
 void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::vector<Coord> valid_moves){
 	Piece* dest_pc = grid[dest.y][dest.x];
 
-	P_Color dest_color = NULL_COLOR;
-	if (dest_pc) dest_color = dest_pc->getColor();
-
 	Piece** a = &grid[src.y][src.x];
 	Piece** b = &grid[dest.y][dest.x];
 	
@@ -103,29 +100,11 @@ bool Board::checkIfDifferentColor(Coord src, Coord dest){
 	return (src_pc->getColor() != dest_pc->getColor());
 }
 
-
-// TODO 
-bool Board::validateMove(Coord src, Coord dest, std::vector<Coord> valid_moves){
-	Piece* src_pc = grid[src.y][src.x];		
-	Piece* dest_pc = grid[dest.y][dest.x];		
-	
-	cout << src << "\n";
-	// If source piece is null or source piece is default empty coord
-	if (not src_pc or src == empty_coord) 
-		return false;
-	// If src and dest color match
-	if (not checkIfDifferentColor(src, dest))
-		return false;
-	
-	// If the destination move is in the valid moves vector, then it is valid.
-	return (std::find(valid_moves.begin(), valid_moves.end(), dest) != valid_moves.end());
-}
-
 void Board::printValidMoves(std::vector<Coord> moves){
 	cout << "Valid moves: [";
 	// For debugging
 	if (moves.size()){
-		for (int i = 0; i < moves.size()-1; i++)
+		for (size_t i = 0; i < moves.size()-1; i++)
 			cout << moves[i].getChessCoordStr() << ", ";
 		cout << (moves.end()-1)->getChessCoordStr();
 	}
@@ -174,7 +153,6 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 	};
 
 	Coord dest;
-	Piece* dest_pc = nullptr;
 
 	switch(getType()){
 		case BISHOP:
@@ -202,8 +180,6 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 			}
 			break;
 		case PAWN:
-			//  An example of how move validation will be implemented
-			//  TODO: Add diagonals if there exists a diagonal enemy to the selected pawn
 			//  Pawns can only attack an enemy if any only if they are diagonal from the pawn.
 			if (getColor() == BLACK){
 				// First move can move two tiles
@@ -217,12 +193,10 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 
 				// Diagonals (move only if enemy piece is present
 				dest = Coord(src.x-1, src.y+1); // bottom left
-				dest_pc = board->grid[dest.y][dest.x];
 				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
 					valid_moves.push_back(dest);
 
 				dest = Coord(src.x+1, src.y+1); // bottom right
-				dest_pc = board->grid[src.y+1][src.x+1]; 
 				// Do not allow pawns to jump over any pieces
 				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
 					valid_moves.push_back(dest);
@@ -239,17 +213,14 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 
 				// Diagonals (move only if enemy piece is present
 				dest = Coord(src.x-1, src.y-1); // top left
-				dest_pc = board->grid[dest.y][dest.x];
 				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
 					valid_moves.push_back(dest);
 
 				dest = Coord(src.x+1, src.y-1); // top right
-				dest_pc = board->grid[dest.y][dest.x]; 
 				// Do not allow pawns to jump over any pieces
 				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
 					valid_moves.push_back(dest);
 			}
-		
 			break;
 		case ROOK: 
 			for (Coord move : lrdu)

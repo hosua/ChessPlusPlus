@@ -31,8 +31,6 @@ public:
 
 	void printValidMoves(std::vector<Coord> moves);
 
-	bool validateMove(Coord src, Coord dest, std::vector<Coord> valid_moves); // TODO
-
 	Piece* grid[GRID_HEIGHT][GRID_WIDTH];
 };
 
