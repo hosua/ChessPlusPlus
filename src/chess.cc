@@ -148,6 +148,7 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 	Coord c = getPos();
 
 	Coord dest;
+	Piece* dest_pc = nullptr;
 
 	switch(getType()){
 		case BISHOP:
@@ -166,15 +167,22 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 				if (board->checkIfCoordInbounds(dest) and not board->grid[dest.y][dest.x])
 					valid_moves.push_back(dest);
 				dest = Coord(c.x, c.y+2);
+				// Do not allow pawns to jump over any pieces
 				if (c.y == 1 and not board->grid[dest.y][dest.x] and not board->grid[dest.y-1][dest.x])	 
 					valid_moves.push_back(Coord(c.x,c.y+2));
 
 				// Diagonals (move only if enemy piece is present
-				dest = Coord(c.x-1, c.y+1); // top left
-				if (board->checkIfCoordInbounds(dest) and board->grid[dest.y][dest.x])
+				dest = Coord(c.x-1, c.y+1); // bottom left
+				dest_pc = board->grid[dest.y][dest.x];
+				if (board->checkIfCoordInbounds(dest) 
+						and dest_pc and dest_pc->getColor() == WHITE)
 					valid_moves.push_back(dest);
-				dest = Coord(c.x+1, c.y+1); // top right
-				if (board->checkIfCoordInbounds(dest) and board->grid[dest.y][dest.x])
+
+				dest = Coord(c.x+1, c.y+1); // bottom right
+				dest_pc = board->grid[c.y+1][c.x+1]; 
+				// Do not allow pawns to jump over any pieces
+				if (board->checkIfCoordInbounds(dest) 
+						and dest_pc and dest_pc->getColor() == WHITE)
 					valid_moves.push_back(dest);
 
 			} else if (getColor() == WHITE){
@@ -185,6 +193,20 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 
 				dest = Coord(c.x,c.y-2);
 				if (c.y == 6 and not board->grid[dest.y][dest.x] and not board->grid[dest.y+1][dest.x])	 
+					valid_moves.push_back(dest);
+
+				// Diagonals (move only if enemy piece is present
+				dest = Coord(c.x-1, c.y-1); // top left
+				dest_pc = board->grid[dest.y][dest.x];
+				if (board->checkIfCoordInbounds(dest) 
+						and dest_pc and dest_pc->getColor() == BLACK)
+					valid_moves.push_back(dest);
+
+				dest = Coord(c.x+1, c.y-1); // top right
+				dest_pc = board->grid[dest.y][dest.x]; 
+				// Do not allow pawns to jump over any pieces
+				if (board->checkIfCoordInbounds(dest) 
+						and dest_pc and dest_pc->getColor() == BLACK)
 					valid_moves.push_back(dest);
 			}
 		
