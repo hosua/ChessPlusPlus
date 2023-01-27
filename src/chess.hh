@@ -8,6 +8,7 @@ extern Coord empty_coord; // An invalid coordinate that should be checked for be
 
 extern std::vector<Coord> lrdu; // left right down up movement
 extern std::vector<Coord> diag; // diagonal movement
+extern std::vector<Coord> knight_moves; // knight movement
 
 class Piece;
 class Board;

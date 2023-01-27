@@ -1,11 +1,17 @@
 #include "chess.hh"
 
-// left right down up
+// left right down up movement
 std::vector<Coord> lrdu = { {-1,0}, {+1,0}, {0,+1}, {0,-1} };
 
 // diagonal movement
 std::vector<Coord> diag = { {-1,-1}, {+1, -1}, {-1, +1}, {+1, +1} };
 
+// knight movement
+std::vector<Coord> knight_moves = {
+	{+1,-2}, {+1,+2}, {+2,-1}, {+2,+1},
+	{-1,-2}, {-1,+2}, {-2,-1}, {-2,+1}
+};
+										
 Coord empty_coord = Coord(-1,-1);
 
 std::vector<P_Type> main_row = {ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK};
@@ -189,6 +195,11 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 			}
 			break;
 		case KNIGHT:
+			for (Coord move : knight_moves){
+				dest = Coord(src.x + move.x, src.y + move.y);
+				if (board->checkIfCoordInbounds(dest) and board->checkIfDifferentColor(src, dest))
+					valid_moves.push_back(dest);
+			}
 			break;
 		case PAWN:
 			//  An example of how move validation will be implemented
