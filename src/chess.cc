@@ -104,8 +104,6 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::set<Coord> 
 	if (src_pc->getType() == KING){
 		// checkKings() needs to occur before king can move
 		(src_pc->getColor() == BLACK) ? black_king_pos = dest : white_king_pos = dest;
-		// make move, check if any kings are under attack
-		checkKings();
 		// if true, undo move
 	}
 
@@ -118,13 +116,29 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::set<Coord> 
 		delete *a;
 		grid[src.y][src.x] = nullptr;
 	}
+
+	// make move, check if any kings are under attack
+	checkKings();
 }
 
 // TODO: Returns the coordinate of an unsafe king, returns the empty_coord if both are safe
 Coord Board::checkKings(){
 	for (int y = 0; y < GRID_HEIGHT; y++){
-		for (int x = 0; x < GRID_HEIGHT; x++){
+		for (int x = 0; x < GRID_WIDTH; x++){
+			Coord src = Coord(x,y);
 			Piece* pc = grid[y][x];
+				if (pc){
+				std::set<Coord> valid_moves = pc->getValidMoves(src, this);
+				if (valid_moves.find(white_king_pos) != valid_moves.end()){
+					cout << "White king check!\n";
+					return white_king_pos;
+				} 
+
+				if (valid_moves.find(black_king_pos) != valid_moves.end()){
+					cout << "Black king check!\n";
+					return black_king_pos;
+				} 
+			}
 		}	
 	}
 	return empty_coord;
@@ -245,7 +259,6 @@ std::set<Coord> Piece::getValidMoves(Coord src, Board* board){
 		case PAWN:
 		{
 			Coord p = board->getPassantPawnTile();
-			cout << "Passant pawn tile: " << p << "\n";
 			if (getColor() == BLACK){
 				dest = Coord(src.x, src.y+1);
 				if (board->checkIfCoordInbounds(dest) and not board->grid[dest.y][dest.x]){
@@ -256,11 +269,8 @@ std::set<Coord> Piece::getValidMoves(Coord src, Board* board){
 				if (src.y == 1){
 					// Do not allow pawns to jump over any pieces
 					dest = Coord(src.x, src.y+2);
-					if (not board->grid[dest.y][dest.x] and not board->grid[dest.y-1][dest.x]){
+					if (not board->grid[dest.y][dest.x] and not board->grid[dest.y-1][dest.x])
 						valid_moves.insert(dest);
-					} else {
-						cout << "WTF\n";
-					}
 				}
 
 				// Diagonals (move only if enemy piece is present or passant tile is attackable
