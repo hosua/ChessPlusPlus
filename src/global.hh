@@ -47,27 +47,22 @@ extern std::map<P_Color, std::string> p_color_to_str;
 
 struct Coord {
 	int x, y;
-	Coord(){}
+	Coord() : x(-1), y(-1) {}
 	Coord(int x, int y) : x(x), y(y){}
 	// print Coord
 	friend std::ostream& operator<<(std::ostream& out, const Coord& c);
 	
 	// Add two Coords
-	Coord operator+(Coord b){
-		return Coord(this->x + b.x, this->y + b.y);
-	}
+	Coord operator+(Coord b){ return Coord(x + b.x, y + b.y); }
+
 	// Subtract two Coords
-	Coord operator-(Coord b){
-		return Coord(this->x - b.x, this->y - b.y);
-	}
+	Coord operator-(Coord b){ return Coord(x - b.x, y - b.y); }
+
 	// Compare two Coords (equal)
-	bool operator==(Coord b){
-		return (this->x == b.x and this->y == b.y);
-	}
+	bool operator==(Coord b){ return (x == b.x and y == b.y); }
+
 	// Compare two coords (not equal)	
-	bool operator!=(Coord b){
-		return not (this->x == b.x and this->y == b.y);
-	}
+	bool operator!=(Coord b){ return not (x == b.x and y == b.y); }
 
 	std::string getChessCoordStr(){
 		char letter = x + 'A';

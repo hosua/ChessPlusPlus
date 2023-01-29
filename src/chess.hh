@@ -20,18 +20,28 @@ public:
 
 	void reset();
 
-
 	bool checkIfCoordInbounds(Coord c);
-
 	bool checkIfDifferentColor(Coord src, Coord dest);
-
 	bool checkIfPieceAtCoord(Coord c);
 
-	void movePiece(Coord src, Coord dest, P_Color src_color, std::vector<Coord> valid_moves);
+	Coord getPassantTile(){ return passant_tile; }
+	void setPassantTile(Coord c){ passant_tile = c; }
+	void unsetPassantTile(Coord c){ passant_tile = empty_coord; }
 
+	Coord getPassantPawnTile(){ return passant_pawn_tile; }
+	void setPassantPawnTile(Coord c){ passant_pawn_tile = c; }
+	void unsetPassantPawnTile(Coord c){ passant_pawn_tile = empty_coord; }
+
+	void movePiece(Coord src, Coord dest, P_Color src_color, std::vector<Coord> valid_moves);
+	
 	void printValidMoves(std::vector<Coord> moves);
 
 	Piece* grid[GRID_HEIGHT][GRID_WIDTH];
+
+private:
+
+	Coord passant_tile; // tile that pawn has to attack diagonally if en passant
+	Coord passant_pawn_tile; // coord of the pawn to till if en passant
 };
 
 class Piece {

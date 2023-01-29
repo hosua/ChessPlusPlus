@@ -53,14 +53,8 @@ std::ostream& operator<<(std::ostream& out, const Coord& c){
 	return out;
 }
 
-Board::Board(){ 
-	for (int y = 0; y < GRID_HEIGHT; y++)
-		for (int x = 0; x < GRID_WIDTH; x++)
-			grid[y][x] = nullptr;
-	reset(); 
-}
-
 void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::vector<Coord> valid_moves){
+	Piece* src_pc = grid[src.y][src.x];
 	Piece* dest_pc = grid[dest.y][dest.x];
 
 	Piece** a = &grid[src.y][src.x];
@@ -70,6 +64,40 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::vector<Coor
 		cout << src.getChessCoordStr() << " -> " << dest.getChessCoordStr() << " is not a valid move.\n";
 		return;
 	} 
+	/* ----------- en passant code ------------- */	
+	
+	// Check if move results in en passant
+	if (passant_tile == dest and checkIfDifferentColor(src,dest)){
+		cout << "En passant.\n";
+		// destroy pawn
+		delete grid[passant_pawn_tile.y][passant_pawn_tile.x];		
+		grid[passant_pawn_tile.y][passant_pawn_tile.x] = nullptr;		
+	}
+	
+	if (passant_tile != empty_coord and passant_tile != dest){
+		cout << "Unset passant tile\n";
+		passant_pawn_tile = passant_tile = empty_coord;
+	}
+
+	// pawn double move check for en passant
+	if (src_pc and src_pc->getType() == PAWN 
+			and ((abs(dest.x - src_pc->getPos().x) > 1)
+			or (abs(dest.y - src_pc->getPos().y) > 1))
+			){
+
+		cout << "pawn double move detected\n";
+
+		if (src_pc->getColor() == BLACK)
+			passant_tile = Coord(dest.x, dest.y-1);
+		else
+			passant_tile = Coord(dest.x, dest.y+1);
+
+		cout << "Set passant tile to " << passant_tile.getChessCoordStr() << "\n";
+
+		passant_pawn_tile = dest;
+		cout << "Set passant pawn tile to " << passant_pawn_tile.getChessCoordStr() << "\n";
+	}
+	/* ----------- end en passant code ------------- */	
 
 	cout << "Moved piece from " << src.getChessCoordStr() << " -> " << dest.getChessCoordStr() << "\n";
 
@@ -110,6 +138,12 @@ void Board::printValidMoves(std::vector<Coord> moves){
 	}
 	cout << "]\n";
 }
+Board::Board() : passant_tile(empty_coord) { 
+	for (int y = 0; y < GRID_HEIGHT; y++)
+		for (int x = 0; x < GRID_WIDTH; x++)
+			grid[y][x] = nullptr;
+	reset(); 
+}
 
 void Board::reset(){
 	cout << "Resetting the game!\n";
@@ -141,10 +175,8 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 		if (not board->checkIfCoordInbounds(dest))
 			return;
 		if (board->checkIfPieceAtCoord(dest)){
-			// Different color, add valid move
 			if (board->checkIfDifferentColor(src, dest))
 				valid_moves.push_back(dest);
-			// same color, invalid move
 			return;
 		}
 		valid_moves.push_back(dest);
@@ -180,24 +212,29 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 			}
 			break;
 		case PAWN:
+		{
+			// TODO: Need to implement En Passant and pawn promotion
 			//  Pawns can only attack an enemy if any only if they are diagonal from the pawn.
+			Coord p = board->getPassantPawnTile();
 			if (getColor() == BLACK){
-				// First move can move two tiles
 				dest = Coord(src.x, src.y+1);
-				if (board->checkIfCoordInbounds(dest) and not board->grid[dest.y][dest.x])
+				// if first turn
+				if (board->checkIfCoordInbounds(dest) and not board->grid[dest.y][dest.x]){
 					valid_moves.push_back(dest);
+				 }
 
 				dest = Coord(src.x, src.y+2);
 				// Do not allow pawns to jump over any pieces
 				if (src.y == 1 and not board->grid[dest.y][dest.x] and not board->grid[dest.y-1][dest.x])	 
 					valid_moves.push_back(Coord(src.x,src.y+2));
 
-				// Diagonals (move only if enemy piece is present
+				// Diagonals (move only if enemy piece is present or en passant
 				dest = Coord(src.x-1, src.y+1); // bottom left
-				if (board->checkIfCoordInbounds(dest) 
-						and board->checkIfPieceAtCoord(dest)
-						and board->checkIfDifferentColor(src, dest))
+				if ((board->checkIfCoordInbounds(dest))
+						and ((board->checkIfPieceAtCoord(dest) and (board->checkIfDifferentColor(src, dest)))
+						or ((board->getPassantTile() == dest) and board->checkIfDifferentColor(src, p)))){
 					valid_moves.push_back(dest);
+				}
 
 				dest = Coord(src.x+1, src.y+1); // bottom right
 				// Do not allow pawns to jump over any pieces
@@ -205,6 +242,12 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 						and board->checkIfPieceAtCoord(dest)
 						and board->checkIfDifferentColor(src, dest))
 					valid_moves.push_back(dest);
+				
+				if ((board->checkIfCoordInbounds(dest))
+						and ((board->checkIfPieceAtCoord(dest) and (board->checkIfDifferentColor(src, dest)))
+						or ((board->getPassantTile() == dest) and board->checkIfDifferentColor(src, p)))){
+					valid_moves.push_back(dest);
+				}
 
 			} else if (getColor() == WHITE){
 				// First move can move two tiles
@@ -218,20 +261,24 @@ std::vector<Coord> Piece::getValidMoves(Board* board){
 
 				// Diagonals (move only if enemy piece is present
 				dest = Coord(src.x-1, src.y-1); // top left
-				if (board->checkIfCoordInbounds(dest) 
-						and board->checkIfPieceAtCoord(dest)
-						and board->checkIfDifferentColor(src, dest))
+				if ((board->checkIfCoordInbounds(dest))
+						and ((board->checkIfPieceAtCoord(dest) and (board->checkIfDifferentColor(src, dest)))
+						or ((board->getPassantTile() == dest) and board->checkIfDifferentColor(src, p)))){
 					valid_moves.push_back(dest);
+				}
 
 				dest = Coord(src.x+1, src.y-1); // top right
 				// Do not allow pawns to jump over any pieces
-				if (board->checkIfCoordInbounds(dest) 
-						and board->checkIfPieceAtCoord(dest)
-						and board->checkIfDifferentColor(src, dest))
+				if ((board->checkIfCoordInbounds(dest))
+						and ((board->checkIfPieceAtCoord(dest) and (board->checkIfDifferentColor(src, dest)))
+						or ((board->getPassantTile() == dest) and board->checkIfDifferentColor(src, p)))){
 					valid_moves.push_back(dest);
+				}
 			}
 			break;
+		}
 		case ROOK: 
+			// TODO: Need to implement castles
 			for (Coord move : lrdu)
 				moveHelper(src + move, move);
 			break;

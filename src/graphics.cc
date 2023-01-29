@@ -123,17 +123,16 @@ void GFX::renderBoard(){
 	};
 	// Render 1-8 on the y-axis
 	std::function <void()> renderBoardNumbers = [&]() -> void {
-		for (int i = 1; i <= GRID_HEIGHT; i++)
+		int x = 0;
+		for (int i = GRID_HEIGHT; i >= 1; i--, x++)
 			renderText(0, 
-						((GRID_CELL_SIZE) * (i-1)) + GRID_CELL_SIZE/4, 
+						((GRID_CELL_SIZE) * x) + GRID_CELL_SIZE/4, 
 						GRID_CELL_SIZE/5, 
 						GRID_CELL_SIZE/3, 
 						std::to_string(i));
 	};
 
-	SDL_SetRenderDrawColor(renderer, 
-			colors.bg.r, colors.bg.g, colors.bg.b,
-			colors.bg.a);
+	SDL_SetRenderDrawColor(renderer, colors.bg.r, colors.bg.g, colors.bg.b, colors.bg.a);
 
 	SDL_RenderClear(renderer);
 
