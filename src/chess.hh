@@ -22,7 +22,10 @@ public:
 
 	bool checkIfCoordInbounds(Coord c);
 	bool checkIfDifferentColor(Coord src, Coord dest);
-	bool checkIfPieceAtCoord(Coord c);
+
+	Coord checkKings(); // Return true if king is under attack in current game state
+	
+	bool isAttacking(Coord src, Coord dest);
 
 	Coord getPassantTile(){ return passant_tile; }
 	void setPassantTile(Coord c){ passant_tile = c; }
@@ -32,13 +35,15 @@ public:
 	void setPassantPawnTile(Coord c){ passant_pawn_tile = c; }
 	void unsetPassantPawnTile(Coord c){ passant_pawn_tile = empty_coord; }
 
-	void movePiece(Coord src, Coord dest, P_Color src_color, std::vector<Coord> valid_moves);
+	void movePiece(Coord src, Coord dest, P_Color src_color, std::set<Coord> valid_moves);
 	
-	void printValidMoves(std::vector<Coord> moves);
+	void printValidMoves(std::set<Coord> moves);
 
 	Piece* grid[GRID_HEIGHT][GRID_WIDTH];
 
 private:
+
+	Coord white_king_pos, black_king_pos;
 
 	Coord passant_tile; // tile that pawn has to attack diagonally if en passant
 	Coord passant_pawn_tile; // coord of the pawn to till if en passant
@@ -61,7 +66,7 @@ public:
 	void setPos(Coord c){ pos = c; }
 	Coord getPos(){ return pos; }
 
-	std::vector<Coord> getValidMoves(Board* board);
+	std::set<Coord> getValidMoves(Coord src, Board* board);
 
 private:
 	Coord pos;

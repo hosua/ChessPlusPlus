@@ -1,7 +1,7 @@
 #include "input.hh"
 #include "chess.hh"
 
-void Mouse::movePiece(Board* board, std::vector<Coord> valid_moves){
+void Mouse::movePiece(Board* board, std::set<Coord> valid_moves){
 	if (selected_coord == empty_coord)
 		return;
 
@@ -26,13 +26,14 @@ void Mouse::movePiece(Board* board, std::vector<Coord> valid_moves){
 void Mouse::describePiece(Board board){
 	Coord c = getPos();
 	Piece* pc = board.grid[c.y][c.x];
+
 	if (pc)
-		cout << pc << " " << c.getChessCoordStr() << "\n";
-	else
-		cout << c.getChessCoordStr() << "\n";
+		cout << pc << " ";
+
+	cout << c.getChessCoordStr() << "\n";
 }
 
-void Mouse::selectPiece(Board board, std::vector<Coord>& valid_moves){
+void Mouse::selectPiece(Board board, std::set<Coord>& valid_moves){
 	Coord c = getPos();	
 	Piece* pc = board.grid[c.y][c.x];
 	if (not in_piece_selection){ // select
@@ -40,8 +41,8 @@ void Mouse::selectPiece(Board board, std::vector<Coord>& valid_moves){
 			cout << "selected piece: " << *pc << " at " << pc->getPos() << " \n";
 			selected_coord = Coord(c.x, c.y);
 			pc->setPos(selected_coord);
-
-			valid_moves = pc->getValidMoves(&board);
+			Coord src = getPos();
+			valid_moves = pc->getValidMoves(src, &board);
 			board.printValidMoves(valid_moves);
 			in_piece_selection = true;
 		}

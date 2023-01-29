@@ -2,13 +2,12 @@
 A proof of concept, may or not actually finish this.
 
 To be implemented:
-```
-Pawn Promotion
-En Passant
-Castles
+* Castles
+* Pawn promotion
+* King checker
+* ~~En Passant~~
 
-AI?
-```
+* AI?
 
 ![img](readme_img/chess-beta.gif)
 

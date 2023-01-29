@@ -12,6 +12,7 @@
 #include <iostream>
 #include <map>
 #include <functional> // for std::function
+#include <set>
 
 #define GRID_CELL_SIZE 80
 #define PIECE_SIZE 60
@@ -51,6 +52,10 @@ struct Coord {
 	Coord(int x, int y) : x(x), y(y){}
 	// print Coord
 	friend std::ostream& operator<<(std::ostream& out, const Coord& c);
+
+	bool operator<(const Coord& b) const { return (x != b.x) ? x < b.x : y < b.y; }
+
+	bool operator==(const Coord& b) const { return (x == b.x and y == b.y); }
 	
 	// Add two Coords
 	Coord operator+(Coord b){ return Coord(x + b.x, y + b.y); }
@@ -64,7 +69,7 @@ struct Coord {
 	// Compare two coords (not equal)	
 	bool operator!=(Coord b){ return not (x == b.x and y == b.y); }
 
-	std::string getChessCoordStr(){
+	std::string getChessCoordStr() const {
 		char letter = x + 'A';
 		int number = coord_conversion_map[y]+1;
 		return letter + std::to_string(number);
