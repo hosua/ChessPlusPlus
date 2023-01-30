@@ -23,7 +23,8 @@ public:
 	bool checkIfCoordInbounds(Coord c);
 	bool checkIfDifferentColor(Coord src, Coord dest);
 
-	Coord checkKings(); // Return true if king is under attack in current game state
+	std::vector<Coord> checkKings(P_Color king_color); // Return true if king is under attack in current game state
+	bool checkIfMated(P_Color king_color, std::vector<Coord> attackers); // Return true if king is is checked and 
 	
 	bool isAttacking(Coord src, Coord dest);
 

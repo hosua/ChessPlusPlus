@@ -1,4 +1,5 @@
 #include "chess.hh"
+#include <SDL2/SDL_image.h>
 
 // left right down up movement
 std::vector<Coord> lrdu = { {-1,0}, {+1,0}, {0,+1}, {0,-1} };
@@ -56,9 +57,13 @@ std::ostream& operator<<(std::ostream& out, const Coord& c){
 void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::set<Coord> valid_moves){
 	Piece* src_pc = grid[src.y][src.x];
 	Piece* dest_pc = grid[dest.y][dest.x];
+	
+	if (not src_pc)
+		return;
 
 	Piece** a = &grid[src.y][src.x];
 	Piece** b = &grid[dest.y][dest.x];
+
 	
 	if (std::find(valid_moves.begin(), valid_moves.end(), dest) == valid_moves.end()){
 		cout << src.getChessCoordStr() << " -> " << dest.getChessCoordStr() << " is not a valid move.\n";
@@ -67,7 +72,7 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::set<Coord> 
 	/* ----------- en passant code ------------- */	
 	
 	// Check if move results in en passant
-	if (passant_tile == dest and checkIfDifferentColor(src,dest)){
+	if (src_pc->getType() == PAWN and passant_tile == dest and checkIfDifferentColor(src,dest)){
 		cout << "En passant.\n";
 		// destroy pawn
 		delete grid[passant_pawn_tile.y][passant_pawn_tile.x];		
@@ -80,7 +85,7 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::set<Coord> 
 	}
 
 	// pawn double move check for en passant
-	if (src_pc and src_pc->getType() == PAWN 
+	if (src_pc->getType() == PAWN 
 			and ((abs(dest.x - src_pc->getPos().x) > 1)
 			or (abs(dest.y - src_pc->getPos().y) > 1))
 			){
@@ -100,12 +105,6 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::set<Coord> 
 	}
 	/* ----------- end en passant code ------------- */	
 
-	// update king positions
-	if (src_pc->getType() == KING){
-		// checkKings() needs to occur before king can move
-		(src_pc->getColor() == BLACK) ? black_king_pos = dest : white_king_pos = dest;
-		// if true, undo move
-	}
 
 	cout << "Moved piece from " << src.getChessCoordStr() << " -> " << dest.getChessCoordStr() << "\n";
 
@@ -117,31 +116,53 @@ void Board::movePiece(Coord src, Coord dest, P_Color src_color, std::set<Coord> 
 		grid[src.y][src.x] = nullptr;
 	}
 
+	// update king positions
+	if (src_pc->getType() == KING){
+		// checkKings() needs to occur before king can move
+		(src_pc->getColor() == BLACK) ? black_king_pos = dest : white_king_pos = dest;
+		// if true, undo move
+	}
+
 	// make move, check if any kings are under attack
-	checkKings();
+	std::vector<Coord> b_king_attackers = checkKings(BLACK);
+	std::vector<Coord> w_king_attackers = checkKings(WHITE);
+	// TODO: Implement check if mated
+	checkIfMated(BLACK, b_king_attackers);
+	checkIfMated(WHITE, w_king_attackers);
+
+	if (src_color == BLACK and b_king_attackers.size() > 0){
+		
+	}
 }
 
-// TODO: Returns the coordinate of an unsafe king, returns the empty_coord if both are safe
-Coord Board::checkKings(){
+// TODO: Implemented check mate checker
+bool Board::checkIfMated(P_Color king_color, std::vector<Coord> attackers){
+	cerr << "Warning: checkIfMated() is not yet implemented.\n";
+	return false;
+}
+
+// Return vector of pieces attack king
+std::vector<Coord> Board::checkKings(P_Color color){
+	std::vector<Coord> attackers;
 	for (int y = 0; y < GRID_HEIGHT; y++){
 		for (int x = 0; x < GRID_WIDTH; x++){
-			Coord src = Coord(x,y);
+			Coord attacker = Coord(x,y);
 			Piece* pc = grid[y][x];
 				if (pc){
-				std::set<Coord> valid_moves = pc->getValidMoves(src, this);
-				if (valid_moves.find(white_king_pos) != valid_moves.end()){
-					cout << "White king check!\n";
-					return white_king_pos;
-				} 
+				std::set<Coord> valid_moves = pc->getValidMoves(attacker, this);
 
-				if (valid_moves.find(black_king_pos) != valid_moves.end()){
+				if (color == WHITE and valid_moves.find(white_king_pos) != valid_moves.end()){
+					cout << "White king check!\n";
+					attackers.push_back(attacker);
+				} 
+				if (color == BLACK and valid_moves.find(black_king_pos) != valid_moves.end()){
+					attackers.push_back(attacker);
 					cout << "Black king check!\n";
-					return black_king_pos;
 				} 
 			}
 		}	
 	}
-	return empty_coord;
+	return attackers;
 }
 
 
@@ -161,15 +182,13 @@ void Board::printValidMoves(std::set<Coord> moves){
 	cout << "Valid moves: [";
 	// For debugging
 	if (moves.size()){
-		auto itr = moves.begin();
-		auto end_itr = --moves.end();
+		std::set<Coord>::iterator itr = moves.begin();
+		std::set<Coord>::iterator end_itr = --moves.end();
 		while (itr != end_itr){
 			cout << itr->getChessCoordStr() << ", ";
 			itr++;
 		}
 		cout << itr->getChessCoordStr() << "]\n";
-		// for (size_t i = 0; i < moves.size()-1; i++)
-		// cout << (moves.end()-1)->getChessCoordStr();
 	}
 }
 Board::Board() : passant_tile(empty_coord) { 
